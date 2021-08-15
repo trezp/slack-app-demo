@@ -1,6 +1,8 @@
 require('dotenv').config()
 const { App, LogLevel } = require('@slack/bolt');
-const gatherBot = require('./gatherBot.js');
+const { gatherBotModal, gatherBotMessage } = require('./blocks.js');
+
+const channelID = 'C02ARLCQT1V';
 
 //Initializes your app with your bot token and signing secret
 const app = new App({
@@ -11,7 +13,7 @@ const app = new App({
   logLevel: LogLevel.INFO,
 });
 
-app.command('/connect', async ({ ack, body, client }) => {
+app.command('/gather', async ({ ack, body, client }) => {
   // acknowledge the slash command
   await ack(); 
 
@@ -19,7 +21,7 @@ app.command('/connect', async ({ ack, body, client }) => {
     const result = await client.views.open({
       // trigger_id required to open modal 
       trigger_id: body.trigger_id,
-      view: gatherBot
+      view: gatherBotModal()
     });
   }
   catch (error) {
@@ -30,24 +32,29 @@ app.command('/connect', async ({ ack, body, client }) => {
 app.view('gatherbot_modal', async ({ ack, body, view, client }) => {
   await ack();
 
+  const user = body['user'].name;
   const radioSelection = Object.values(view['state']['values'])[0]['radio_buttons-action']['selected_option']['text']['text'];
   const date = Object.values(view['state']['values'])[1]['datepicker-action']['selected_date'];
-  const msg = `Someone wants to *${radioSelection}* on *${date}*. Who would like to join them?`
-
-  //Message the user
+ 
+  // Message the user
   try {
-    await client.chat.postMessage({
+    const response = await client.chat.postMessage({
       // channel ID for #general
-      channel: 'C02AQHA2ULX',
-      text: msg
+      channel: channelID,
+      blocks: gatherBotMessage(user, radioSelection, date),
+      text: `<@${user}> wants to *${radioSelection}* on *${date}*. Would you like to join? :white_check_mark:`
+    });
+
+    await client.reactions.add({
+      channel: channelID,
+      name: 'white_check_mark',
+      timestamp: response.ts
     });
   }
   catch (error) {
     console.error(error);
   }
-
 });
-
 
 (async () => {
   // Start your app
