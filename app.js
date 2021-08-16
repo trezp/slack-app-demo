@@ -84,5 +84,5 @@ app.command('/skipbo', async ({ ack, body, client }) => {
 
 (async () => {
   await app.start(process.env.PORT || 3000);
-  console.log('⚡️ Bolt app is running!');
+  console.log('⚡️ GatherBot is running!');
 })();
