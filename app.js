@@ -2,7 +2,8 @@ require('dotenv').config();
 const { App, LogLevel } = require('@slack/bolt');
 const { gatherBotModal, gatherBotMessage } = require('./blocks.js');
 
-const channelID = 'C02ARLCQT1V';
+// id for #general
+const channelID = 'C02AQHA2ULX';
 
 //Initializes your app with your bot token and signing secret
 const app = new App({

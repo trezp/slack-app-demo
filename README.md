@@ -13,7 +13,6 @@ Then, in the project directory:
 ```
  npm install
  npm start
-
 ```
 
 Please join this Slack team demo to interact with GatherBot: 
