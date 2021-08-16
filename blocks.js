@@ -38,34 +38,34 @@ const gatherBotModal = ()=> {
 						"text": {
 							"type": "plain_text",
 							"text": "play a rousing game of Skip-Bo",
-							"emoji": true,
+							"emoji": true
 						},
-						"value": "value-0",
+						"value": "skipbo"
 					},
 					"options": [
 						{
 							"text": {
 								"type": "plain_text",
 								"text": "play a rousing game of Skip-Bo",
-								"emoji": true,
+								"emoji": true
 							},
-							"value": "value-0",
+							"value": "skipbo"
 						},
 						{
 							"text": {
 								"type": "plain_text",
-								"text": "meet up in the park",
+								"text": "play a board game",
 								"emoji": true
 							},
-							"value": "value-1"
+							"value": "game"
 						},
 						{
 							"text": {
 								"type": "plain_text",
-								"text": "have a virtual group chat",
+								"text": "watch a movie",
 								"emoji": true
 							},
-							"value": "value-2"
+							"value": "movie"
 						}
 					],
 					"action_id": "radio_buttons-action"
@@ -74,18 +74,86 @@ const gatherBotModal = ()=> {
 			{
 				"type": "input",
 				"element": {
-					"type": "datepicker",
-					"initial_date": "2021-08-25",
+					"type": "static_select",
 					"placeholder": {
 						"type": "plain_text",
-						"text": "Select a date",
+						"text": "Choose a day",
 						"emoji": true
 					},
-					"action_id": "datepicker-action"
+					"options": [
+						{
+							"text": {
+								"type": "plain_text",
+								"text": "Monday",
+								"emoji": true
+							},
+							"value": "monday"
+						},
+						{
+							"text": {
+								"type": "plain_text",
+								"text": "Wednesday",
+								"emoji": true
+							},
+							"value": "wednesday"
+						},
+						{
+							"text": {
+								"type": "plain_text",
+								"text": "Friday",
+								"emoji": true
+							},
+							"value": "friday"
+						}
+					],
+					"action_id": "static_select-action"
 				},
 				"label": {
 					"type": "plain_text",
-					"text": "Label",
+					"text": "What day?",
+					"emoji": true
+				}
+			},
+			{
+				"type": "input",
+				"element": {
+					"type": "static_select",
+					"placeholder": {
+						"type": "plain_text",
+						"text": "Choose a time",
+						"emoji": true
+					},
+					"options": [
+						{
+							"text": {
+								"type": "plain_text",
+								"text": "11am",
+								"emoji": true
+							},
+							"value": "time-0"
+						},
+						{
+							"text": {
+								"type": "plain_text",
+								"text": "1pm",
+								"emoji": true
+							},
+							"value": "time-1"
+						},
+						{
+							"text": {
+								"type": "plain_text",
+								"text": "2pm",
+								"emoji": true
+							},
+							"value": "time-2"
+						}
+					],
+					"action_id": "static_select-action"
+				},
+				"label": {
+					"type": "plain_text",
+					"text": "What time?",
 					"emoji": true
 				}
 			}
@@ -93,7 +161,7 @@ const gatherBotModal = ()=> {
 	}
 }
 
-const gatherBotMessage = (user, radioSelection, date) => {
+const gatherBotMessage = (gatherMsg) => {
 	return [
 		{
 			"type": "header",
@@ -107,7 +175,7 @@ const gatherBotMessage = (user, radioSelection, date) => {
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": `<@${user}> wants to *${radioSelection}* on *${date}*. Would you like to join? :white_check_mark:`
+				"text": gatherMsg
 			}
 		}
 	]

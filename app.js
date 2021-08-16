@@ -1,4 +1,4 @@
-require('dotenv').config()
+require('dotenv').config();
 const { App, LogLevel } = require('@slack/bolt');
 const { gatherBotModal, gatherBotMessage } = require('./blocks.js');
 
@@ -33,16 +33,27 @@ app.view('gatherbot_modal', async ({ ack, body, view, client }) => {
   await ack();
 
   const user = body['user'].name;
-  const radioSelection = Object.values(view['state']['values'])[0]['radio_buttons-action']['selected_option']['text']['text'];
-  const date = Object.values(view['state']['values'])[1]['datepicker-action']['selected_date'];
- 
+  const data = view['state']['values'];
+  const responses = [];
+  let gatherMsg;
+
+  // drill into the response to get the form selections
+  for (const object in data) {
+    for(item in data[object]){
+      responses.push(data[object][item]['selected_option']['text']['text']);
+    }
+  }
+
   // Message the user
   try {
+    const [activity, day, time] = responses;
+    gatherMsg = `<@${user}> wants to *${activity} on ${day} at ${time}*. Would you like to join? :white_check_mark:`;
+
     const response = await client.chat.postMessage({
       // channel ID for #general
       channel: channelID,
-      blocks: gatherBotMessage(user, radioSelection, date),
-      text: `<@${user}> wants to *${radioSelection}* on *${date}*. Would you like to join? :white_check_mark:`
+      blocks: gatherBotMessage(gatherMsg),
+      text: `<@${user}> wants to *${activity} on ${day} at ${time}*. Would you like to join? :white_check_mark:`
     });
 
     await client.reactions.add({
@@ -56,9 +67,21 @@ app.view('gatherbot_modal', async ({ ack, body, view, client }) => {
   }
 });
 
-(async () => {
-  // Start your app
-  await app.start(process.env.PORT || 3000);
+app.command('/skipbo', async ({ ack, body, client }) => {
+  await ack(); 
 
+  try {
+    await client.chat.postMessage({
+      channel: body.channel_id,
+      text: 'How to Play Skip-Bo: https://www.youtube.com/watch?v=Z-b_XTnMRck'
+    });
+  }
+  catch (error) {
+    console.error(error);
+  } 
+});
+
+(async () => {
+  await app.start(process.env.PORT || 3000);
   console.log('⚡️ Bolt app is running!');
 })();
