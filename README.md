@@ -5,7 +5,7 @@
 Clone the repo: 
 
 ```
-clone link
+git clone git@github.com:trezp/slack-app-demo.git
 ```
 
 Then, in the project directory: 
