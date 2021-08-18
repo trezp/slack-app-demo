@@ -1,3 +1,4 @@
+// Slack Block Kit elements 
 const gatherBotModal = ()=> {
 	return {
 		"callback_id": "gatherbot_modal",
