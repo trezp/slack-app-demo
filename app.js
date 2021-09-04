@@ -3,9 +3,6 @@ require('dotenv').config();
 const { App, LogLevel } = require('@slack/bolt');
 const { gatherBotModal, gatherBotMessage } = require('./blocks.js');
 
-// id for #general
-const channelID = 'C02AQHA2ULX';
-
 // Initialize app 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
@@ -15,26 +12,14 @@ const app = new App({
   logLevel: LogLevel.INFO,
 });
 
-// Define slash commands 
-app.command('/skipbo', async ({ ack, body, client }) => {
-  // required method to acknowledge the slash command
-  await ack(); 
-
-  // post a message to a channel 
-  await client.chat.postMessage({
-    channel: body.channel_id,
-    text: 'How to Play Skip-Bo: https://www.youtube.com/watch?v=Z-b_XTnMRck'
-  });
-});
-
 app.command('/gather', async ({ ack, body, client }) => {
   await ack(); 
 
   try {
     // open the GatherBot modal view
-    const result = await client.views.open({
+    await client.views.open({
       trigger_id: body.trigger_id,
-      view: gatherBotModal()
+      view: gatherBotModal
     });
   } catch (error) {
     console.error(error);
@@ -60,12 +45,13 @@ app.view('gatherbot_modal', async ({ ack, body, view, client }) => {
     const [ activity, day, time ] = responses;
     const user = body['user'].name;
     const gatherMsg = `<@${user}> wants to *${activity} on ${day} at ${time}*. Would you like to join? :white_check_mark:`;
+    // id for #general
+    const channelID = 'C02AQHA2ULX';
 
     const response = await client.chat.postMessage({
       // channel ID for #general
       channel: channelID,
       blocks: gatherBotMessage(gatherMsg),
-      text: `<@${user}> wants to *${activity} on ${day} at ${time}*. Would you like to join? :white_check_mark:`
     });
 
     // Using the timestamp from the response, automatically add the first emoji reaction
@@ -77,6 +63,16 @@ app.view('gatherbot_modal', async ({ ack, body, view, client }) => {
   } catch (error) {
     console.error(error);
   }
+});
+
+
+app.command('/skipbo', async ({ ack, body, client }) => {
+  await ack(); 
+
+  await client.chat.postMessage({
+    channel: body.channel_id,
+    text: 'How to Play Skip-Bo: https://www.youtube.com/watch?v=Z-b_XTnMRck'
+  });
 });
 
 // surprise command for end of presentation 
