@@ -8,20 +8,20 @@ Clone the repo:
 git clone https://github.com/trezp/slack-app-demo.git
 ```
 
+Create an .env file using `.env.example`. 
+
+Join my Slack team and DM me for the security keys (potential employers and friends only).
+
+```
+https://join.slack.com/t/mcc-workspace-group/shared_invite/zt-u69yr4uf-g862nw1xPLhdNe_NJIhU6A
+```
+
 Then, in the project directory: 
 
 ```
  npm install
  npm start
 ```
-
-Once the server is running, please join this Slack team demo to interact with GatherBot: 
-
-```
-https://join.slack.com/t/mcc-workspace-group/shared_invite/zt-u69yr4uf-g862nw1xPLhdNe_NJIhU6A
-```
-
-Note: Because this is a demo (and because this repo is private), for ease of use I've committed the .env file with all necessary auth tokens to the repo. For the record, I would never do this in production, or for an app handling potentially sensitive user information :) 
 
 ### Interacting with GatherBot
 You can use the following Slack `slash commands` to interact with GatherBot within Slack: 
