@@ -1,5 +1,8 @@
 require('dotenv').config();
 
+
+const database = require('./server.js');
+
 const { App, LogLevel } = require('@slack/bolt');
 const { gatherBotModal, gatherBotMessage } = require('./blocks.js');
 
@@ -11,6 +14,35 @@ const app = new App({
   socketMode: true,
   logLevel: LogLevel.INFO,
 });
+
+// const addMessage = (trigger, text) => {
+   app.message('test', async ({ message, client }) => {
+    try {
+      // Call chat.scheduleMessage with the built-in client
+      const result = await client.chat.postMessage({
+        channel: message.channel,
+        // post_at: whenSeptemberEnds,
+        text: "Saved to database, hopefully"
+      });
+
+      database.connect(err => {
+        const collection = database.db("slack").collection("gatherbot");
+        // const message = addMessage("test", "hello how are you");
+        database.db("slack").collection("gatherbot").insertOne(result, (err, result)=> {
+          if (err) throw err; 
+          console.log("document added: " + result);
+          console.log(result)
+          database.close() 
+        });
+      });
+      return result;
+    }
+    catch (error) {
+      console.error(error);
+    }
+  });
+// }
+
 
 app.command('/gather', async ({ ack, body, client }) => {
   await ack(); 
@@ -46,12 +78,13 @@ app.view('gatherbot_modal', async ({ ack, body, view, client }) => {
     const user = body['user'].name;
     const gatherMsg = `<@${user}> wants to *${activity} on ${day} at ${time}*. Would you like to join? :white_check_mark:`;
     // id for #general
-    const channelID = 'C02AQHA2ULX';
+    const channelID = 'C02G73QNTHD';
 
     const response = await client.chat.postMessage({
       // channel ID for #general
       channel: channelID,
       blocks: gatherBotMessage(gatherMsg),
+      text: gatherMsg
     });
 
     // Using the timestamp from the response, automatically add the first emoji reaction
