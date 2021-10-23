@@ -21,7 +21,7 @@ const runDB = async (callback) => {
     const database = mongo.db('slack');
     const collection = database.collection('gatherbot');
   
-    callback(mongo, collection);
+    callback(collection);
 
   } catch(err) {
     console.log(err);
@@ -29,12 +29,28 @@ const runDB = async (callback) => {
 }
 
 const saveToDB = async (document) => {
-  await runDB( async (mongo, collection) => {
+  await runDB( async (collection) => {
     await collection.insertOne(document);
-    await mongo.close();
   });
 }
 
+const findUserByTimestamp = async (ts) => {
+  return await runDB( async (collection) => {
+    await collection.findOne({'ts': ts});
+  });
+}
+
+const setGuestList = async (ts, user) => {
+  let updated; 
+
+  await runDB( async (collection) => {
+    const filter = { 'ts': ts };
+    const options = { upsert: true };
+    const updateDoc = {$set: {"message.text": "Update the $*#$#$# message please"}};
+
+    await collection.findOneAndUpdate(filter, updateDoc);
+  });
+}
 app.message('test', async ({ message, client }) => {
   try {
     const result = await client.chat.postMessage({
@@ -59,15 +75,18 @@ app.message('test', async ({ message, client }) => {
       ]
     });
 
-    app.action('join-btn', async ({ ack }) => {
+    app.action('join-btn', async ({ack, body, client}) => {
       await ack();
 
       await saveToDB(result);
+      const blah = await setGuestList(result.ts, body.user)
+      
+      const user = await findUserByTimestamp(result.ts)
 
       await client.chat.postMessage({
         // channel ID for #general
         channel: result.channel,
-        text: `The message has been saved!!`
+        text: `${blah}`
       });
     });
     
@@ -76,6 +95,8 @@ app.message('test', async ({ message, client }) => {
   }
   catch (error) {
     console.error(error);
+  } finally {
+    mongo.close(); 
   }
 });
 
