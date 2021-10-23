@@ -1,10 +1,10 @@
 require('dotenv').config();
 
-
-const database = require('./server.js');
+const mongo = require('./db.js');
 
 const { App, LogLevel } = require('@slack/bolt');
 const { gatherBotModal, gatherBotMessage } = require('./blocks.js');
+const { ConsoleLogger } = require('@slack/logger');
 
 // Initialize app 
 const app = new App({
@@ -15,33 +15,70 @@ const app = new App({
   logLevel: LogLevel.INFO,
 });
 
-// const addMessage = (trigger, text) => {
-   app.message('test', async ({ message, client }) => {
-    try {
-      // Call chat.scheduleMessage with the built-in client
-      const result = await client.chat.postMessage({
-        channel: message.channel,
-        // post_at: whenSeptemberEnds,
-        text: "Saved to database, hopefully"
-      });
+const runDB = async (callback) => {
+  try {
+    await mongo.connect(); 
+    const database = mongo.db('slack');
+    const collection = database.collection('gatherbot');
+  
+    callback(mongo, collection);
 
-      database.connect(err => {
-        const collection = database.db("slack").collection("gatherbot");
-        // const message = addMessage("test", "hello how are you");
-        database.db("slack").collection("gatherbot").insertOne(result, (err, result)=> {
-          if (err) throw err; 
-          console.log("document added: " + result);
-          console.log(result)
-          database.close() 
-        });
-      });
-      return result;
-    }
-    catch (error) {
-      console.error(error);
-    }
+  } catch(err) {
+    console.log(err);
+  }
+}
+
+const saveToDB = async (document) => {
+  await runDB( async (mongo, collection) => {
+    await collection.insertOne(document);
+    await mongo.close();
   });
-// }
+}
+
+app.message('test', async ({ message, client }) => {
+  try {
+    const result = await client.chat.postMessage({
+      channel: message.channel,
+      text: "New Message new message new message",
+      blocks: [
+        {
+          "type": "actions",
+          "elements": [
+            {
+              "type": "button",
+              "text": {
+                "type": "plain_text",
+                "text": "Save this message to the DB!",
+                "emoji": true
+              },
+              "value": "join",
+              "action_id": "join-btn"
+            }
+          ]
+        }
+      ]
+    });
+
+    app.action('join-btn', async ({ ack }) => {
+      await ack();
+
+      await saveToDB(result);
+
+      await client.chat.postMessage({
+        // channel ID for #general
+        channel: result.channel,
+        text: `The message has been saved!!`
+      });
+    });
+    
+
+    
+  }
+  catch (error) {
+    console.error(error);
+  }
+});
+
 
 
 app.command('/gather', async ({ ack, body, client }) => {
@@ -88,7 +125,7 @@ app.view('gatherbot_modal', async ({ ack, body, view, client }) => {
     });
 
     // Using the timestamp from the response, automatically add the first emoji reaction
-    await client.reactions.add({
+    const reaction = await client.reactions.add({
       channel: channelID,
       name: 'white_check_mark',
       timestamp: response.ts

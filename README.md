@@ -1,8 +1,8 @@
 ## Welcome to GatherBot! 
 
-### To install
+Gatherbot is a Slack application build with Bolt for JavaScript. It uses a MongoDB Atlas cloud database. 
 
-Clone the repo: 
+### To install
 
 ```
 git clone https://github.com/trezp/slack-app-demo.git
@@ -10,11 +10,7 @@ git clone https://github.com/trezp/slack-app-demo.git
 
 Create an .env file using `.env.example`. 
 
-Join my Slack team and DM me for the security keys (potential employers and friends only).
-
-```
-https://join.slack.com/t/mcc-workspace-group/shared_invite/zt-u69yr4uf-g862nw1xPLhdNe_NJIhU6A
-```
+Join my development Slack team and DM me for the security keys (potential employers and friends only).
 
 Then, in the project directory: 
 
