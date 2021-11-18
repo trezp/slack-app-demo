@@ -19,9 +19,22 @@ const saveToDB = async (document) => {
   });
 }
 
+const clearDB = async () => {
+  await runDB( async (collection) => {
+    await collection.deleteMany({});
+  });
+}
+
+const getGuestList = async (ts) => {
+  await runDB( async (collection) => {
+    await collection.find({"actions.action_ts": ts});
+  });
+}
+
 const findUserByTimestamp = async (ts) => {
   return await runDB( async (collection) => {
-    await collection.findOne({'ts': ts});
+    console.log(collection.findOne())
+    await collection.find({'ts': ts});
   });
 }
 
@@ -40,6 +53,8 @@ const setGuestList = async (ts, user) => {
 module.exports = {
   runDB, 
   saveToDB,
+  clearDB,
+  getGuestList,
   findUserByTimestamp,
   setGuestList
 }
