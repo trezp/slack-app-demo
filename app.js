@@ -4,7 +4,7 @@ const mongo = require('./db.js');
 
 const { App, LogLevel } = require('@slack/bolt');
 const { gatherBotModal, gatherBotMessage } = require('./blocks.js');
-const { ConsoleLogger } = require('@slack/logger');
+const { saveToDB, findUserByTimestamp, setGuestList } = require('./helpers.js');
 
 // Initialize app 
 const app = new App({
@@ -15,42 +15,6 @@ const app = new App({
   logLevel: LogLevel.INFO,
 });
 
-const runDB = async (callback) => {
-  try {
-    await mongo.connect(); 
-    const database = mongo.db('slack');
-    const collection = database.collection('gatherbot');
-  
-    callback(collection);
-
-  } catch(err) {
-    console.log(err);
-  }
-}
-
-const saveToDB = async (document) => {
-  await runDB( async (collection) => {
-    await collection.insertOne(document);
-  });
-}
-
-const findUserByTimestamp = async (ts) => {
-  return await runDB( async (collection) => {
-    await collection.findOne({'ts': ts});
-  });
-}
-
-const setGuestList = async (ts, user) => {
-  let updated; 
-
-  await runDB( async (collection) => {
-    const filter = { 'ts': ts };
-    const options = { upsert: true };
-    const updateDoc = {$set: {"message.text": "Update the $*#$#$# message please"}};
-
-    await collection.findOneAndUpdate(filter, updateDoc);
-  });
-}
 app.message('test', async ({ message, client }) => {
   try {
     const result = await client.chat.postMessage({
@@ -86,12 +50,9 @@ app.message('test', async ({ message, client }) => {
       await client.chat.postMessage({
         // channel ID for #general
         channel: result.channel,
-        text: `${blah}`
+        text: `Message saved!`
       });
     });
-    
-
-    
   }
   catch (error) {
     console.error(error);
@@ -99,8 +60,6 @@ app.message('test', async ({ message, client }) => {
     mongo.close(); 
   }
 });
-
-
 
 app.command('/gather', async ({ ack, body, client }) => {
   await ack(); 
