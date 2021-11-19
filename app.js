@@ -76,7 +76,6 @@ app.action('attendBtn', async ({ack, body, client}) => {
   const user = body['user'].name;
   const doc = await findDocByTimeStamp(body.message.ts, user);
   let userOrUsers = doc.value.guestList ? doc.value.guestList : `<@${user}>`;
-  //await clearDB()
 
   await client.chat.update({
     channel: doc.value.channelID,
