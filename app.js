@@ -1,10 +1,11 @@
 require('dotenv').config();
 
-
-const database = require('./server.js');
+const mongo = require('./db.js');
 
 const { App, LogLevel } = require('@slack/bolt');
 const { gatherBotModal, gatherBotMessage } = require('./blocks.js');
+const { saveToDB, findDocByTimeStamp } = require('./helpers.js');
+const { ConsoleLogger } = require('@slack/logger');
 
 // Initialize app 
 const app = new App({
@@ -14,35 +15,6 @@ const app = new App({
   socketMode: true,
   logLevel: LogLevel.INFO,
 });
-
-// const addMessage = (trigger, text) => {
-   app.message('test', async ({ message, client }) => {
-    try {
-      // Call chat.scheduleMessage with the built-in client
-      const result = await client.chat.postMessage({
-        channel: message.channel,
-        // post_at: whenSeptemberEnds,
-        text: "Saved to database, hopefully"
-      });
-
-      database.connect(err => {
-        const collection = database.db("slack").collection("gatherbot");
-        // const message = addMessage("test", "hello how are you");
-        database.db("slack").collection("gatherbot").insertOne(result, (err, result)=> {
-          if (err) throw err; 
-          console.log("document added: " + result);
-          console.log(result)
-          database.close() 
-        });
-      });
-      return result;
-    }
-    catch (error) {
-      console.error(error);
-    }
-  });
-// }
-
 
 app.command('/gather', async ({ ack, body, client }) => {
   await ack(); 
@@ -87,17 +59,38 @@ app.view('gatherbot_modal', async ({ ack, body, view, client }) => {
       text: gatherMsg
     });
 
-    // Using the timestamp from the response, automatically add the first emoji reaction
-    await client.reactions.add({
-      channel: channelID,
-      name: 'white_check_mark',
-      timestamp: response.ts
+    await saveToDB({
+      user,
+      channelID,
+      ts: response.ts,
+      gatherMsg
     });
   } catch (error) {
     console.error(error);
   }
 });
 
+app.action('attendBtn', async ({ack, body, client}) => {
+  await ack();
+
+  const user = body['user'].name;
+  const doc = await findDocByTimeStamp(body.message.ts, user);
+  let userOrUsers = doc.value.guestList ? doc.value.guestList : `<@${user}>`;
+
+  await client.chat.update({
+    channel: doc.value.channelID,
+    ts: doc.value.ts,
+    blocks: gatherBotMessage(`${doc.value.gatherMsg} ${userOrUsers} want(s) to join!`),
+    text: `<@${user}> wants to join!`
+  });
+
+  // Using the timestamp from the response, automatically add the first emoji reaction
+  const reaction = await client.reactions.add({
+    channel: doc.value.channelID,
+    name: 'white_check_mark',
+    timestamp: doc.value.ts
+  });
+});
 
 app.command('/skipbo', async ({ ack, body, client }) => {
   await ack(); 

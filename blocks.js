@@ -176,6 +176,21 @@ const gatherBotMessage = (gatherMsg) => {
 				"type": "mrkdwn",
 				"text": gatherMsg
 			}
+		},
+		{
+			"type": "actions",
+			"elements": [
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"text": "I'd like to go!",
+						"emoji": true
+					},
+					"value": "attend",
+					"action_id": "attendBtn"
+				}
+			]
 		}
 	]
 }
