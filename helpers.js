@@ -25,36 +25,23 @@ const clearDB = async () => {
   });
 }
 
-const getGuestList = async (ts) => {
-  await runDB( async (collection) => {
-    await collection.find({"actions.action_ts": ts});
-  });
-}
-
-const findUserByTimestamp = async (ts) => {
-  return await runDB( async (collection) => {
-    console.log(collection.findOne())
-    await collection.find({'ts': ts});
-  });
-}
-
-const setGuestList = async (ts, user) => {
-  let updated; 
-
-  await runDB( async (collection) => {
-    const filter = { 'ts': ts };
-    const options = { upsert: true };
-    const updateDoc = {$set: {"message.text": "Update the $*#$#$# message please"}};
-
-    await collection.findOneAndUpdate(filter, updateDoc);
-  });
+const findDocByTimeStamp = async (ts, user) => {
+  try {
+    await mongo.connect(); 
+    const database = mongo.db('slack');
+    const collection = database.collection('gatherbot');
+  
+    const doc = await collection.findOneAndUpdate({'ts': ts}, {$push: {guestList: `<@${user}>`}}, {upsert: true}, {new: true});
+    console.log(doc)
+    return doc 
+  } catch(err) {
+    console.log(err);
+  }
 }
 
 module.exports = {
   runDB, 
   saveToDB,
   clearDB,
-  getGuestList,
-  findUserByTimestamp,
-  setGuestList
+  findDocByTimeStamp
 }
